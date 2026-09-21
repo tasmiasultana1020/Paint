@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Artisan - Painting Shop</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #fff5f5;
+        }
+        .navbar-custom {
+            background-color: #ec4444;
+        }
+        .card {
+            border: 2px solid #050404;
+        }
+        .btn-custom {
+            background-color: #f9f585;
+            color: rgb(12, 12, 12);
+        }
+        .btn-custom:hover {
+            background-color: #9ff247;
+            color: rgb(6, 6, 6);
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-dark navbar-custom sticky-top">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="#">Artisan</a>
+            <div class="ms-auto">
+                <button class="btn btn-light text-danger fw-bold" data-bs-toggle="modal" data-bs-target="#cartModal">
+                    Cart (<span id="count">0</span>)
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container my-4">
+        <h2 class="text-center mb-4 text-danger fw-bold">Our Painting Products</h2>
+        <div class="row" id="product-box"></div>
+    </div>
+
+    <div class="modal fade" id="cartModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title">Your Cart</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <ul id="cart-list" class="list-group mb-3">
+                        <li class="list-group-item">Cart is empty</li>
+                    </ul>
+                    <h4>Total Price: <span id="total">0</span> BDT</h4>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-success" onclick="checkout()">Order Now</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+        <div id="orderToast" class="toast align-items-center text-black bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body" id="toast-message">
+                    Successfully Ordered!
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let productList = [
+            { id: 1, name: "Acrylic Paints", price: 2000, img: "p1.jpg.jpeg" },
+            { id: 2, name: "Pastel Paints", price: 1900, img: "p2.jpg.jpeg" },
+            { id: 3, name: "Gouache Paints", price: 800, img: "p3.jpg.jpeg" },
+            { id: 4, name: "Water Colors", price: 600, img: "p4.jpg.jpeg" },
+            { id: 5, name: "Poster Colors", price: 500, img: "p5.jpg.jpeg" },
+            { id: 6, name: "Oil Colors", price: 1500, img: "p6.jpg.jpeg" },
+            { id: 7, name: "Brush Set", price: 400, img: "p7.jpg.jpeg" },
+            { id: 8, name: "Canvas", price: 100, img: "p8.jpg.jpeg" }
+        ];
+
+        let cart = [];
+
+        function displayProducts() {
+            let box = document.getElementById("product-box");
+            box.innerHTML = "";
+
+            for (let i = 0; i < productList.length; i++) {
+                let p = productList[i];
+                box.innerHTML += `
+                    <div class="col-md-3 mb-3">
+                        <div class="card p-2 h-100 shadow-sm">
+                            <img src="${p.img}" class="card-img-top" style="height: 150px; object-fit: cover;">
+                            <div class="card-body text-center d-flex flex-column">
+                                <h5 class="card-title">${p.name}</h5>
+                                <p class="card-text text-danger fw-bold">${p.price} BDT</p>
+                                <button class="btn btn-custom btn-sm mt-auto" onclick="addToCart(${p.id})">Add to Cart</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function addToCart(id) {
+            let selectedProduct = null;
+            for (let i = 0; i < productList.length; i++) {
+                if (productList[i].id === id) {
+                    selectedProduct = productList[i];
+                }
+            }
+
+            cart.push(selectedProduct);
+            updateCartUI();
+            showToast(`"${selectedProduct.name}" added to cart!`);
+        }
+
+        function updateCartUI() {
+            let cartList = document.getElementById("cart-list");
+            let countSpan = document.getElementById("count");
+            let totalSpan = document.getElementById("total");
+
+            countSpan.innerText = cart.length;
+
+            if (cart.length === 0) {
+                cartList.innerHTML = `<li class="list-group-item">Cart is empty</li>`;
+                totalSpan.innerText = "0";
+                return;
+            }
+
+            cartList.innerHTML = "";
+            let totalPrice = 0;
+
+            for (let i = 0; i < cart.length; i++) {
+                totalPrice += cart[i].price;
+                cartList.innerHTML += `<li class="list-group-item d-flex justify-content-between">
+                    <span>${cart[i].name}</span>
+                    <span>${cart[i].price} BDT</span>
+                </li>`;
+            }
+
+            totalSpan.innerText = totalPrice;
+        }
+
+        function checkout() {
+            if (cart.length === 0) {
+                showToast("Cart is empty!");
+                return;
+            }
+            showToast("Successfully Ordered!");
+            cart = [];
+            updateCartUI();
+            let modalElement = document.getElementById('cartModal');
+            let modal = bootstrap.Modal.getInstance(modalElement);
+            modal.hide();
+        }
+
+        function showToast(message) {
+            let toastEl = document.getElementById('orderToast');
+            let toastMessage = document.getElementById('toast-message');
+            toastMessage.innerText = message;
+            let toast = new bootstrap.Toast(toastEl);
+            toast.show();
+        }
+
+        displayProducts();
+    </script>
+</body>
+</html>
